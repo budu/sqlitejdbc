@@ -34,10 +34,10 @@ public class DBMetaDataTest
         ResultSet rs = meta.getTables(null, null, null, null);
         assertNotNull(rs);
         assertTrue(rs.next());
-        assertEquals(rs.getString("TABLE_NAME"), "TEST"); // 3
+        assertEquals(rs.getString("TABLE_NAME"), "test"); // 3
         assertEquals(rs.getString("TABLE_TYPE"), "TABLE"); // 4
         assertTrue(rs.next());
-        assertEquals(rs.getString("TABLE_NAME"), "TESTVIEW");
+        assertEquals(rs.getString("TABLE_NAME"), "testView");
         assertEquals(rs.getString("TABLE_TYPE"), "VIEW");
         rs.close();
 
@@ -55,13 +55,13 @@ public class DBMetaDataTest
 
         rs = meta.getTables(null, null, null, new String[] { "table" });
         assertTrue(rs.next());
-        assertEquals(rs.getString("TABLE_NAME"), "TEST");
+        assertEquals(rs.getString("TABLE_NAME"), "test");
         assertFalse(rs.next());
         rs.close();
 
         rs = meta.getTables(null, null, null, new String[] { "view" });
         assertTrue(rs.next());
-        assertEquals(rs.getString("TABLE_NAME"), "TESTVIEW");
+        assertEquals(rs.getString("TABLE_NAME"), "testView");
         assertFalse(rs.next());
         rs.close();
     }

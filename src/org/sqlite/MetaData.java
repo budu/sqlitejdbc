@@ -17,6 +17,7 @@
 package org.sqlite;
 
 import java.sql.*;
+import java.util.regex.*;
 
 class MetaData implements DatabaseMetaData
 {
@@ -344,7 +345,7 @@ class MetaData implements DatabaseMetaData
             + "cn as COLUMN_NAME, "
             + "ct as DATA_TYPE, "
             + "tn as TYPE_NAME, "
-            + "2000000000 as COLUMN_SIZE, "
+            + "cs as COLUMN_SIZE, "
             + "2000000000 as BUFFER_LENGTH, "
             + "10   as DECIMAL_DIGITS, "
             + "10   as NUM_PREC_RADIX, "
@@ -371,6 +372,7 @@ class MetaData implements DatabaseMetaData
         for (int i=0; rs.next(); i++) {
             String colName = rs.getString(2);
             String colType = rs.getString(3);
+            String colSize = null;
             String colNotNull = rs.getString(4);
 
             int colNullable = 2;
@@ -389,12 +391,22 @@ class MetaData implements DatabaseMetaData
             else
                 colJavaType = Types.VARCHAR;
 
+            Pattern p = Pattern.compile("(\\w*CHAR\\w*)\\((.+)\\)");
+            Matcher m = p.matcher(colType);
+            if (m.matches()) {
+                colType = m.group(1);
+                colSize = m.group(2);
+            }
+            else
+                colSize = "null";
+
             sql += "select "
                 + i + " as ordpos, "
                 + colNullable + " as colnullable, '"
                 + colJavaType + "' as ct, '"
                 + escape(colName) + "' as cn, '"
-                + escape(colType) + "' as tn";
+                + escape(colType) + "' as tn, '"
+                + escape(colSize) + "' as cs";
 
             if (colPat != null)
                 sql += " where upper(cn) like upper('" + escape(colPat) + "')";

@@ -391,7 +391,8 @@ class MetaData implements DatabaseMetaData
             else
                 colJavaType = Types.VARCHAR;
 
-            Pattern p = Pattern.compile("(\\w*CHAR\\w*)\\((.+)\\)");
+            String ps = "(\\w*CHAR\\w*|\\w*LOB|\\w*BINARY|NUMERIC|DECIMAL|TIME\\w*)\\((\\d+),?.*(\\d+)?\\)";
+            Pattern p = Pattern.compile(ps);
             Matcher m = p.matcher(colType);
             if (m.matches()) {
                 colType = m.group(1);
@@ -405,8 +406,8 @@ class MetaData implements DatabaseMetaData
                 + colNullable + " as colnullable, '"
                 + colJavaType + "' as ct, '"
                 + escape(colName) + "' as cn, '"
-                + escape(colType) + "' as tn, '"
-                + escape(colSize) + "' as cs";
+                + escape(colType) + "' as tn, "
+                + escape(colSize) + " as cs";
 
             if (colPat != null)
                 sql += " where upper(cn) like upper('" + escape(colPat) + "')";

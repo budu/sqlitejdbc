@@ -514,9 +514,60 @@ class MetaData implements DatabaseMetaData
 
     public ResultSet getImportedKeys(String c, String s, String t)
         throws SQLException { throw new SQLException("not yet implemented"); }
-    public ResultSet getIndexInfo(String c, String s, String t,
+    
+    public ResultSet getIndexInfo(String c, String s, String table,
                                   boolean u, boolean approximate)
-        throws SQLException { throw new SQLException("not yet implemented"); }
+            throws SQLException {
+        String sql;
+        ResultSet indexes, indexInfo;
+        Statement stat = conn.createStatement();
+        Statement innerStat = conn.createStatement();
+        short indexType = DatabaseMetaData.tableIndexHashed;
+
+        sql = "select "
+            + "null as TABLE_CAT, "
+            + "null as TABLE_SCHEM, "
+            + "'" + escape(table) + "' as TABLE_NAME, "
+            + "nu as NON_UNIQUE, "
+            + "null as INDEX_QUALIFIER, "
+            + "iname as INDEX_NAME, "
+            + indexType + " as TYPE, "
+            + "op as ORDINAL_POSITION, "
+            + "cn as COLUMN_NAME, "
+            + "null as ASC_OR_DESC, "
+            + "-1 as CARDINALITY, "
+            + "-1 as PAGES, "
+            + "null as FILTER_CONDITION from (";
+
+        indexes = stat.executeQuery("pragma index_list('"+escape(table)+"');");
+        
+        int i, j;
+        for (i=0; indexes.next(); i++) {
+            String indexName = indexes.getString(2);
+            String unique = indexes.getString(3);
+
+            indexInfo = innerStat.executeQuery("pragma index_info('"+escape(indexName)+"');");
+
+            for (j=0; indexInfo.next(); j++) {
+                String ordinalPos = indexInfo.getString(1);
+                String colName = indexInfo.getString(3);
+
+                if (i > 0) sql += " union all ";
+
+                sql += "select '" + escape(indexName) + "' as iname, "
+                    + (unique.equals("0") ? 1:0) + " as nu, "
+                    + ordinalPos + " as op, "
+                    + "'" + colName + "' as cn";
+            }
+
+            indexInfo.close();
+        }
+        sql += i == 0 ? "select null as cn) limit 0;" : ");";
+        indexes.close();
+
+        return stat.executeQuery(sql);
+    }
+    
     public ResultSet getProcedureColumns(String c, String s, String p,
                                          String colPat)
             throws SQLException {
